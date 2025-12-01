@@ -12,7 +12,7 @@ router.get("/", async (req, res) => {
   }
 });
 
-// 📝 Tạo phiếu mượn mới
+// 📝 Tạo phiếu mượn mới (tính trạng thái nếu có ngày trả)
 router.post("/muon", async (req, res) => {
   const { MaDocGia, MaSach, NgayMuon, NgayTra } = req.body;
 
@@ -21,11 +21,32 @@ router.post("/muon", async (req, res) => {
   }
 
   try {
+    const ngayMuon = NgayMuon ? new Date(NgayMuon) : new Date();
+    const ngayTra = NgayTra ? new Date(NgayTra) : null;
+
+    const hanMuon = 7;
+    const ngayHetHan = new Date(ngayMuon);
+    ngayHetHan.setDate(ngayHetHan.getDate() + hanMuon);
+
+    let quaHan = false;
+    let soNgayTre = 0;
+    let tienPhat = 0;
+
+    if (ngayTra && ngayTra > ngayHetHan) {
+      const msPerDay = 1000 * 60 * 60 * 24;
+      soNgayTre = Math.floor((ngayTra - ngayHetHan) / msPerDay);
+      quaHan = true;
+      tienPhat = soNgayTre * 2000;
+    }
+
     const newRecord = new TheoDoiMuonSach({
       MaDocGia,
       MaSach,
-      NgayMuon: NgayMuon || new Date(), // nhận từ body, nếu không có thì lấy ngày hiện tại
-      NgayTra: NgayTra || null
+      NgayMuon: ngayMuon,
+      NgayTra: ngayTra,
+      QuaHan: quaHan,
+      SoNgayTre: soNgayTre,
+      TienPhat: tienPhat
     });
 
     await newRecord.save();
@@ -43,14 +64,17 @@ router.put("/tra/:id", async (req, res) => {
 
     record.NgayTra = new Date();
 
-    const hanMuon = 7; // số ngày cho phép mượn
+    const hanMuon = 7;
     const ngayHetHan = new Date(record.NgayMuon);
     ngayHetHan.setDate(ngayHetHan.getDate() + hanMuon);
 
-    if (record.NgayTra > ngayHetHan) {
-      record.QuaHan = true;
-      record.SoNgayTre = Math.ceil((record.NgayTra - ngayHetHan) / (1000 * 60 * 60 * 24));
-      record.TienPhat = record.SoNgayTre * 2000; // 💰 tính tiền phạt
+    const msPerDay = 1000 * 60 * 60 * 24;
+    const soNgayTre = Math.floor((record.NgayTra - ngayHetHan) / msPerDay);
+
+    if (soNgayTre > 0) {
+      record.QuaHan = true; // ✅ sửa lại đúng
+      record.SoNgayTre = soNgayTre;
+      record.TienPhat = soNgayTre * 2000;
     } else {
       record.QuaHan = false;
       record.SoNgayTre = 0;

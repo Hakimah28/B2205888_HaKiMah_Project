@@ -31,7 +31,7 @@ const props = defineProps({ isOpen: Boolean, pinnedList: Array });
 const emit = defineEmits(["close"]);
 
 // ✅ Trạng thái hiển thị thông báo
-const showMessage = ref(false);
+const showMessage = ref(true);
 
 // Hàm gọi khi ghim sách thành công
 const handlePinSuccess = () => {

@@ -20,8 +20,8 @@
       <label>Nhà Xuất Bản:</label>
       <input v-model="sachData.MaNXB" />
 
-      <label>Nguồn Gốc:</label>
-      <input v-model="sachData.NguonGoc" />
+      <label>Tác Giả:</label>
+      <input v-model="sachData.TacGia" />
 
       <div class="button-group">
         <button class="btn-primary" @click="submitEdit">Lưu</button>
